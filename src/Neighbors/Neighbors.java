@@ -364,7 +364,6 @@ public class Neighbors extends JPanel implements ActionListener {
 			}
 		}
 
-		System.out.println(findEmpty(new Point(0,0)));
     	
     	//other initializations
 		unhappy.clear();
@@ -377,19 +376,23 @@ public class Neighbors extends JPanel implements ActionListener {
     public Point findEmpty(Point original) {
     	Point result = new Point(original);
 
-
     	//
+
+		int lowerBound = -roamMax;
+		int upperBound = roamMax;
+
 		int searchCol = 0;
 		int searchRow = 0;
-		for (int i = -1; i < 2; i++) {
-			for (int j = -1; j < 2; j++) {
-				searchCol = (original.x + i + cells.length) % cells.length;
-				searchRow = (original.y + j + cells.length) % cells.length;
+		for (int i = lowerBound; i <= upperBound; i++) {
+			for (int j = lowerBound; j <= upperBound; j++) {
+				searchRow = (original.x + i + cells.length) % cells.length;
+				searchCol = (original.y + j + cells.length) % cells.length;
+				if(cells[searchRow][searchCol] == 0){
+					result.setLocation(searchRow,searchCol);
+				}
 			}
 		}
-		if(cells[searchCol][searchRow] == 0){
-			result.setLocation(searchCol,searchRow);
-		}
+
 
 		//
     	
@@ -404,7 +407,40 @@ public class Neighbors extends JPanel implements ActionListener {
     //it should use neighborRadius in some way to appropriately check all of the cells around it in a suitable neighborhood
     //you make the 'neighborhood' in question a square instead a circle (the side length of the square would still be roughly 2*neighborRadius)
     public double checkNeighbors(int row, int col) {
-    	int result = 0;
+    	double result;
+
+    	//
+		int sum = 0;
+		int searchCol;
+		int searchRow;
+
+
+		int lowerBound = -neighborRadius;
+		int upperBound = neighborRadius;
+
+		for (int i = lowerBound; i <= upperBound; i++) {
+			for (int j = lowerBound; j <= upperBound; j++) {
+				searchRow = (row + i + cells.length) % cells.length;
+				searchCol = (col + j + cells.length) % cells.length;
+
+//				System.out.println((cells[searchRow][searchCol]));
+//				System.out.println(cells[row][col]);
+
+				if ((cells[searchRow][searchCol] == cells[row][col]) || (cells[searchRow][searchCol] == 0)){
+					sum++;
+				}
+
+
+			}
+		}
+		sum--;
+
+		double dia = 2 * neighborRadius + 1;
+
+		result = sum / ((dia * dia)-1.0);
+
+
+		//
 
     	//your code goes here
     	
@@ -417,6 +453,35 @@ public class Neighbors extends JPanel implements ActionListener {
     	//then, once it's filled out what locations go in the changed variable, it tries to relocate those cells using findEmpty
     	//also keep track of how many unhappy cells there were each generation you're displaying
     	//you should make the simulation stop once every unhappy cell has been satisfied
+
+		for (int i = 0; i < cells.length; i++) {
+			for (int j = 0; j < cells[i].length; j++) {
+				boolean happy;
+				if(checkNeighbors(i,j) < alike){
+					toChange.add(new Point(i,j));
+				}
+			}
+
+		}
+		for (int i = 0; i < toChange.size(); i++) {
+			Point newloc = findEmpty(toChange.get(i));
+			cells[newloc.x][newloc.y] = cells[toChange.get(i).x][toChange.get(i).y];
+			if (newloc.x != toChange.get(i).x){
+				cells[toChange.get(i).x][toChange.get(i).y] = 0;
+			}
+			if (newloc.y != toChange.get(i).y){
+				cells[toChange.get(i).x][toChange.get(i).y] = 0;
+			}
+
+
+
+
+		}
+
+
+
+
+
 
     	//your code goes here
     
